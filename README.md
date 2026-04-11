@@ -12,7 +12,7 @@
 0.0.40
 
 ## 演示图
-![主页](/Documentation/img/主页.png)
+![主页](/Documentation/主页.png)
 
 ## 下载
 
