@@ -2,25 +2,30 @@
     "fruits": {
        "1": {
             "name": "西瓜",
-            "step": 2
+            "step": 2,
+            "img": "assets/fruits_1.png"
         },
         "2": {
             "name": "胡萝卜",
-            "step": 3
+            "step": 3,
+            "img": "assets/fruits_2.png"
         },
         "3": {
             "name": "辣椒",
-            "step": 4
+            "step": 4,
+            "img": "assets/fruits_3.png"
         },
         "4": {
             "name": "番茄",
-            "step": 6
+            "step": 6,
+            "img": "assets/fruits_4.png"
         }
     },
     "items": {
         "buff": {
-            "name": "增益道具",
-            "step": 1
+            "name": "加速Buff",
+            "step": 1,
+            "img": "assets/items_buff.png"
         }
     }
 }
