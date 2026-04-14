@@ -3,22 +3,31 @@
        "1": {
             "name": "西瓜",
             "step": 2,
-            "img": "assets/fruits_1.png"
+            "img": "assets/fruits_1.png",
+            "growthValue": 12000.0,
+            "currentFruitCount": 1
         },
         "2": {
             "name": "胡萝卜",
             "step": 3,
-            "img": "assets/fruits_2.png"
+            "img": "assets/fruits_2.png",
+            "growthValue": 18000.0,
+            "currentFruitCount": 1
         },
         "3": {
             "name": "辣椒",
             "step": 4,
-            "img": "assets/fruits_3.png"
+            "img": "assets/fruits_3.png",
+            "growthValue": 24000.0,
+            "currentFruitCount": 2
         },
         "4": {
             "name": "番茄",
             "step": 6,
-            "img": "assets/fruits_4.png"
+            "img": "assets/fruits_4.png",
+            "growthValue": 36000.0,
+            "currentFruitCount": 2
+            
         }
     },
     "items": {
