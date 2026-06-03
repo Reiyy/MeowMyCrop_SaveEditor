@@ -1,35 +1,76 @@
 import base64
 import json
 import os
-import sys
 import tkinter as tk
 from tkinter import filedialog, messagebox
 import customtkinter as ctk
 from PIL import Image
-import time
+import struct
+import zlib
 
 XOR_KEY = [90,61,127,27,156,46,79,138,29,107,60,94,127,42,157,75,142,31,108,58,93,123,47,158,76,143,30,109,59,95,122,46]
-PREFIX = "ENCRYPTED_V1:"
+
+PREFIX_V1 = "ENCRYPTED_V1:"
+PREFIX_V2 = "ENCRYPTED_V2:"
+
 
 def decrypt(text):
-    b64 = text[len(PREFIX):]
-    data = base64.b64decode(b64)
-    result = bytearray(len(data))
-    for i in range(len(data)):
-        result[i] = data[i] ^ XOR_KEY[i % len(XOR_KEY)]
-    return result.decode("utf-8", errors="ignore")
+    if text.startswith(PREFIX_V2):
+
+        b64 = text[len(PREFIX_V2):]
+        data = base64.b64decode(b64)
+
+        result = bytearray(len(data))
+        for i in range(len(data)):
+            result[i] = data[i] ^ XOR_KEY[i % len(XOR_KEY)]
+
+        if len(result) < 4:
+            raise ValueError("存档数据损坏")
+
+        payload = result[:-4]
+
+        stored_crc = struct.unpack("<I", result[-4:])[0]
+        actual_crc = zlib.crc32(payload) & 0xFFFFFFFF
+
+        if stored_crc != actual_crc:
+            raise ValueError(
+                f"CRC校验失败: {stored_crc:08X} != {actual_crc:08X}"
+            )
+
+        return payload.decode("utf-8", errors="ignore")
+
+    elif text.startswith(PREFIX_V1):
+
+        b64 = text[len(PREFIX_V1):]
+        data = base64.b64decode(b64)
+
+        result = bytearray(len(data))
+        for i in range(len(data)):
+            result[i] = data[i] ^ XOR_KEY[i % len(XOR_KEY)]
+
+        return result.decode("utf-8", errors="ignore")
+
+    else:
+        raise ValueError("未知存档格式")
+
 
 def encrypt(text):
-    data = text.encode("utf-8")
+    payload = text.encode("utf-8")
+
+    crc = zlib.crc32(payload) & 0xFFFFFFFF
+
+    data = payload + struct.pack("<I", crc)
+
     result = bytearray(len(data))
     for i in range(len(data)):
         result[i] = data[i] ^ XOR_KEY[i % len(XOR_KEY)]
-    return PREFIX + base64.b64encode(result).decode()
+
+    return PREFIX_V2 + base64.b64encode(result).decode()
 
 class SaveEditor:
     def __init__(self, root):
         self.root = root
-        self.root.title("喵了个菜！存档编辑器 v1.2")
+        self.root.title("喵了个菜！存档编辑器 v1.3")
         self.root.geometry("500x670")
         self.root.minsize(100, 170)
         
@@ -75,7 +116,7 @@ class SaveEditor:
         self.scroll_frame.pack(pady=10, padx=15, fill=tk.BOTH, expand=True)
         self.log_box = ctk.CTkTextbox(root, height=120, corner_radius=12, border_width=2, border_color="#D1D9E6", fg_color="#F0F2F5", text_color="#555555")
         self.log_box.pack(fill=tk.X, padx=20, pady=(0, 20))
-        self.log(f"版本:v1.2 260414 By 夜棂依Yareiy")
+        self.log(f"版本:v1.3 260603 By 夜棂依Yareiy")
         self.log(f"发布地址：https://github.com/Reiyy/MeowMyCrop_SaveEditor")
         
         self.load_icons()
@@ -159,9 +200,12 @@ class SaveEditor:
             self.file_path = path
             with open(path, "r", encoding="utf-8") as f:
                 content = f.read()
-            if not content.startswith(PREFIX):
-                self.log("❌ 存档格式不正确")
-                return
+                if not (
+                    content.startswith(PREFIX_V1)
+                    or content.startswith(PREFIX_V2)
+                ):
+                    self.log("❌ 存档格式不正确")
+                    return
             decrypted = decrypt(content)
             self.data = json.loads(decrypted)
             self.original_data = json.loads(decrypted)
